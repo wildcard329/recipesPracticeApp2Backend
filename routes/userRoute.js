@@ -16,7 +16,7 @@ router.get('/:id', (req, res) => {
 
     users.getUserById(id)
         .then(results => {
-            res.status(200).json(results.rows);
+            res.status(200).json(results.rows[0]);
         })
         .catch(err => {
             throw err;
@@ -32,13 +32,12 @@ router.post('/create', (req, res) => {
                 users.createUser({username, password, email})
                     .then(() => {
                         res.status(201).send('User created.');
-            
                     })
                     .catch(err => {
                         throw err;
                     });
             } else {
-                res.status(404).send(`User with email ${email} already exists.`)
+                res.status(400).send(`User with email ${email} already exists.`)
             }
         })
         .catch(err => {
@@ -47,37 +46,46 @@ router.post('/create', (req, res) => {
 });
 
 router.put('/:id', (req, res) => {
-    // present state is that the user must change email when editing, have tried to compare 
-    // results.rows.email, but this comparison does not work
+    // Function length is due to error handling. First check is for the user, second check 
+    // is for whether the user changed their email, which has a unique constraint. If the 
+    // user's email is unchanged, the update goes through, if the user changed the email,
+    // the database checks whether the email already exists. Function repeats and needs to 
+    // be cleaned.
     const id = parseInt(req.params.id);
     const {username, password, email} = req.body;
 
     users.getUserById(id)
         .then(results => {
             if (results.rows.length) {
-                const previousEmail = results.rows.email;
+                userEmail = results.rows[0].email;
 
-                users.getUserByEmail(email) 
-                    .then(results => {
-                        if (previousEmail === email || !results.rows.length) {
-                            users.editUser({username, password, email, id})
-                                .then(() => {
-                                        res.status(200).send(`User with id ${id} updated.`);
-                                })
-                                .catch(err => {
-                                    throw err;
-                                })
-                        } else {
-                            res.status(400).send(`User with email ${email} already exists.`);
-                        }
-                    })
-                    .catch(err => {
-                        throw err;
-                    })
+                if (email !== userEmail) {
+                    users.getUserByEmail(email) 
+                        .then(results => {
+                            if (results.rows.length) {
+                                res.status(400).send(`User with email ${email} already exists.`)
+                            } else {
+                                users.editUser({username, password, email, id})
+                                    .then(() => {
+                                        res.status(200).send(`User with id ${id} updated.`)
+                                    })
+                                    .catch(err => {
+                                        throw err;
+                                    })
+                            }
+                        })
+                } else {
+                    users.editUser({username, password, email, id})
+                        .then(() => {
+                            res.status(200).send(`User with id ${id} updated.`)
+                        })
+                        .catch(err => {
+                            throw err;
+                        })
+                }
+            } else {
+                res.status(404).send(`User with id ${id} not found.`);
             }
-        })
-        .catch(err => {
-            throw err;
         });
 });
 
