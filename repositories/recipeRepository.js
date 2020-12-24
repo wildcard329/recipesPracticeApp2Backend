@@ -6,15 +6,15 @@ const getRecipes = () => {
 }
 
 const getRecipeById = (id) => {
-    return db.query(scripts.getRecipeByIdScript(id));
+    return db.query(scripts.getRecipeByIdScript, [id]);
 };
 
-const createRecipe = ({name, description, instructions, ingredients}) => {
-    return db.query(scripts.createRecipeScript({name, description, instructions, ingredients}));
+const createRecipe = ({name, description, author}) => {
+    return db.query(scripts.createRecipeScript, [name, description, author]);
 };
 
-const updateRecipe = ({name, description, instructions, ingredients, id}) => {
-    return db.query(scripts.updateRecipeScript({name, description, instructions, ingredients, id}));
+const updateRecipe = ({name, description, author, id}) => {
+    return db.query(scripts.updateRecipeScript({name, description, author, id}));
 };
 
 const deleteRecipe = (id) => {

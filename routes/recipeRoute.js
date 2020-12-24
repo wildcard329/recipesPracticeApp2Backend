@@ -28,9 +28,9 @@ router.get('/:id', (req, res) => {
 });
 
 router.post('/create', (req, res) => {
-    const {name, description, instructions, ingredients} = req.body;
+    const {name, description, author} = req.body;
 
-    recipes.createRecipe({name, description, instructions, ingredients})
+    recipes.createRecipe({name, description, author})
         .then(() => {
             res.status(201).json({msg: `User created.`})
         })
@@ -41,12 +41,12 @@ router.post('/create', (req, res) => {
 
 router.put('/:id', (req, res) => {
     const id = parseInt(req.params.id);
-    const {name, description, instructions, ingredients} = req.body;
+    const {name, description, author} = req.body;
 
     recipes.getRecipeById(id)
         .then(results => {
             if (results.rows.length) {
-                recipes.updateRecipe({name, description, instructions, ingredients})
+                recipes.updateRecipe({name, description, author})
                 .then(results => {
                     if (results.rows.length) {
                         res.status(200).json({msg: `Recipe with id ${id} updated successfully.`});
