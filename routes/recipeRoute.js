@@ -29,10 +29,30 @@ router.get('/:id', (req, res) => {
 
 router.post('/create', (req, res) => {
     const {name, description, author} = req.body;
+    const file = req.files.file
 
+    console.log(req.body);
     recipes.createRecipe({name, description, author})
         .then(() => {
-            res.status(201).json({msg: `User created.`})
+            res.status(201).json({msg: `Recipe created.`})
+        })
+        .catch(err => {
+            throw err;
+        });
+
+});
+
+router.post('/images', (req, res) => {
+    // testing tutorial, plan to remove route later
+    const filename = req.files.file.name
+
+    recipes.storeImage(filename)
+        .then(results => {
+            if (results) {
+                res.status(200).json({msg: 'Image successfully uploaded'})
+            } else {
+                res.status(500).json({msg: 'Could not upload image'})
+            }
         })
         .catch(err => {
             throw err;

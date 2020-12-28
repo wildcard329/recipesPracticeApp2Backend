@@ -13,18 +13,23 @@ const createRecipe = ({name, description, author}) => {
     return db.query(scripts.createRecipeScript, [name, description, author]);
 };
 
+const storeImage = (image) => {
+    file.mv('../images/', image)
+}
+
 const updateRecipe = ({name, description, author, id}) => {
-    return db.query(scripts.updateRecipeScript({name, description, author, id}));
+    return db.query(scripts.updateRecipeScript, [name, description, author, id]);
 };
 
 const deleteRecipe = (id) => {
-    return db.query(scripts.deleteRecipeScript(id));
+    return db.query(scripts.deleteRecipeScript, [id]);
 };
 
 module.exports = {
     getRecipes,
     getRecipeById,
     createRecipe,
+    storeImage,
     updateRecipe,
     deleteRecipe
 };
