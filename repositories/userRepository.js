@@ -13,6 +13,10 @@ const getUserByEmail = (email) => {
     return db.query(scripts.getUserByEmailScript, [email]);
 };
 
+const getUserByUsername = (username) => {
+    return db.query(scripts.getUserByUsernameScript, [username]);
+};
+
 const createUser = ({username, password, email}) => {
     return db.query(scripts.createUserScript, [username, password, email]);
 };
@@ -29,6 +33,7 @@ module.exports = {
     getUsers,
     getUserById,
     getUserByEmail,
+    getUserByUsername,
     createUser,
     editUser,
     deleteUser
