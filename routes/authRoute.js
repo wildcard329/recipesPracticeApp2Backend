@@ -35,13 +35,19 @@ router.post('/register', (req, res) => {
 router.post('/login', (req, res) => {
     const {username, password} = req.body;
 
-    users.getUserByUsername({username})
-        .then(([user]) => {
-            if (user && bcrypt.compareSync(password, user.password)) {
-                const token = generateToken(user);
-                res.status(200).json({msg: `Welcome, ${username}`, token})
+    users.getUserByUsername(username)
+        .then(results => {
+            if (results.rows.length) {
+                user = results.rows[0]
+
+                if (user && bcrypt.compareSync(password, user.password)) {
+                    const token = generateToken(user);
+                    res.status(200).json({msg: `Welcome, ${username}`, token, user})
+                } else {
+                    res.status(401).json({msg: 'Invalid credentials'})
+                }
             } else {
-                res.status(401).json({msg: 'Invalid credentials'})
+                res.status(400).json({msg: 'User not found.'})
             }
         })
         .catch(err => {
