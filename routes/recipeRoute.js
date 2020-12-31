@@ -29,9 +29,7 @@ router.get('/:id', (req, res) => {
 
 router.post('/create', (req, res) => {
     const {name, description, author} = req.body;
-    const file = req.files.file
 
-    console.log(req.body);
     recipes.createRecipe({name, description, author})
         .then(() => {
             res.status(201).json({msg: `Recipe created.`})
