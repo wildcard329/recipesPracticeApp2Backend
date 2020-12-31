@@ -27,6 +27,22 @@ router.get('/:id', (req, res) => {
         });
 });
 
+router.get('/user/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+
+    recipes.getRecipesByUserId(id)
+        .then(results => {
+            if (results.rows.length) {
+                res.status(200).json(results.rows);
+            } else {
+                res.status(404).json({msg: `Could not find recipes by user with id ${id}`})
+            }
+        })
+        .catch(err => {
+            throw err;
+        });
+});
+
 router.post('/create', (req, res) => {
     const {name, description, author} = req.body;
 

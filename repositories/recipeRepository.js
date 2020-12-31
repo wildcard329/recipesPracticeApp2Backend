@@ -9,6 +9,10 @@ const getRecipeById = (id) => {
     return db.query(scripts.getRecipeByIdScript, [id]);
 };
 
+const getRecipesByUserId = (id) => {
+    return db.query(scripts.getRecipesByUserIdScript, [id]);
+};
+
 const createRecipe = ({name, description, author}) => {
     return db.query(scripts.createRecipeScript, [name, description, author]);
 };
@@ -28,6 +32,7 @@ const deleteRecipe = (id) => {
 module.exports = {
     getRecipes,
     getRecipeById,
+    getRecipesByUserId,
     createRecipe,
     storeImage,
     updateRecipe,
