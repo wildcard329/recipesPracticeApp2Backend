@@ -5,7 +5,7 @@ const users = require('../repositories/userRepository.js');
 const secrets = require('../api/secret.js');
 
 router.post('/register', (req, res) => {
-    let {username, password, email} = req.body;
+    let {username, password, email, created_on} = req.body;
 
     const rounds = process.env.HASH_ROUNDS || 14;
 
@@ -16,7 +16,7 @@ router.post('/register', (req, res) => {
     users.getUserByEmail(email)
     .then(results => {
         if (!results.rows.length) {
-            users.createUser({username, password, email})
+            users.createUser({username, password, email, created_on})
                 .then(() => {
                     res.status(201).send('User created.');
                 })
@@ -33,8 +33,9 @@ router.post('/register', (req, res) => {
 });
 
 router.post('/login', (req, res) => {
-    const {username, password} = req.body;
+    const {username, password, last_login} = req.body;
 
+    console.log('request: ',req.body)
     users.getUserByUsername(username)
         .then(results => {
             if (results.rows.length) {
@@ -42,7 +43,10 @@ router.post('/login', (req, res) => {
 
                 if (user && bcrypt.compareSync(password, user.password)) {
                     const token = generateToken(user);
+                    const id = user.id;
+                    users.updateLogin({last_login, id});
                     res.status(200).json({msg: `Welcome, ${username}`, token, user})
+                    console.log('user: ',user)
                 } else {
                     res.status(401).json({msg: 'Invalid credentials'})
                 }

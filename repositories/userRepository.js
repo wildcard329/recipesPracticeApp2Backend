@@ -17,13 +17,18 @@ const getUserByUsername = (username) => {
     return db.query(scripts.getUserByUsernameScript, [username]);
 };
 
-const createUser = ({username, password, email}) => {
-    return db.query(scripts.createUserScript, [username, password, email]);
+const createUser = ({username, password, email, created_on}) => {
+    return db.query(scripts.createUserScript, [username, password, email, created_on]);
 };
 
 const editUser = ({username, password, email, id}) => {
     return db.query(scripts.updateUserScript, [username, password, email, id]);
 };
+
+const updateLogin = ({last_login, id}) => {
+    console.log(`repo ll: ${last_login}`)
+    return db.query(scripts.updateLoginScript, [last_login, id])
+}
 
 const deleteUser = (id) => {
     return db.query(scripts.deleteUserScript, [id]);
@@ -36,5 +41,6 @@ module.exports = {
     getUserByUsername,
     createUser,
     editUser,
+    updateLogin,
     deleteUser
 };
