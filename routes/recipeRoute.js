@@ -59,18 +59,19 @@ router.post('/create', (req, res) => {
 router.post('/images', (req, res) => {
     // testing tutorial, plan to remove route later
     const filename = req.files.file.name
+    console.log('file: ',req.files.file);
 
-    recipes.storeImage(filename)
-        .then(results => {
-            if (results) {
-                res.status(200).json({msg: 'Image successfully uploaded'})
-            } else {
-                res.status(500).json({msg: 'Could not upload image'})
-            }
-        })
-        .catch(err => {
-            throw err;
-        });
+    // recipes.storeImage(filename)
+    //     .then(results => {
+    //         if (results) {
+    //             res.status(200).json({msg: 'Image successfully uploaded'})
+    //         } else {
+    //             res.status(500).json({msg: 'Could not upload image'})
+    //         }
+    //     })
+    //     .catch(err => {
+    //         throw err;
+    //     });
 });
 
 router.put('/:id', (req, res) => {
