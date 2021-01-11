@@ -13,12 +13,14 @@ const getRecipesByUserId = (id) => {
     return db.query(scripts.getRecipesByUserIdScript, [id]);
 };
 
-const createRecipe = ({name, description, author}) => {
-    return db.query(scripts.createRecipeScript, [name, description, author]);
+const createRecipe = ({name, description, author, filename}) => {
+    console.log('image: ',filename)
+    return db.query(scripts.createRecipeScript, [name, description, author, filename]);
 };
 
-const storeImage = (image) => {
-    file.mv('../images/', image)
+const storeImage = ({image_name, image}) => {
+    console.log(`Data: ${image_name}\n${image}`)
+    return db.query(scripts.storeImageScript, [image_name, image])
 }
 
 const updateRecipe = ({name, description, author, id}) => {
