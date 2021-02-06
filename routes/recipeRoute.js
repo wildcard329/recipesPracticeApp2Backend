@@ -24,6 +24,10 @@ router.get('/:id', (req, res) => {
     recipes.getRecipeById(id)
         .then(results => {
             if (results.rows.length) {
+                if (results.rows[0].image) {
+                    const image = results.rows[0].image;
+                    results.rows[0].image = fs.readFileSync(`${__dirname}/../temporary_storage/${image}`).toString('base64');
+                }
                 res.status(200).json(results.rows[0]);
             } else {
                 res.status(404).json({msg: `Could not find recipe with id ${id}`})
@@ -56,82 +60,61 @@ router.get('/user/:id', (req, res) => {
         });
 });
 
-router.post('/create', (req, res) => {
-    const {name, description, author, filename} = req.body;
-    console.log('author: ',author)
+router.post('/search', (req, res) => {
+    // incomplete; needs function written in ../repositories and ../scripts
+    // will not be able to search by ingredient until the ingredients 
+    // functionality is written out
+    const { search } = req.body;
+    // recipes.getRecipes()
+    //     .then(results => {
+    //         if (results.rows.length) {
+    //             results.rows.forEach(row => {
+    //                 const query = search.toLowerCase();
+    //                 console.log(row.name.toLowerCase(), query)
+    //                 console.log(row.name.includes(query, 0))
+    //                 return row.name.toLowerCase().includes(search.toLowerCase(), 0)
+    //             })
+    //             results.rows.forEach(row => {
+    //                 if (row.image !== null) {
+    //                     const image = row.image;
+    //                     row.image = fs.readFileSync(`${__dirname}/../temporary_storage/${image}`).toString('base64');
+    //                 }
+    //             })
+    //             res.status(200).json(results.rows)
+    //         }
+    //     })
+})
+
+router.post('/create', async (req, res) => {
+    const {name, description, author, ingredients, instructions, filename} = req.body;
     if (req.files.file) {
         const file = req.files.file;
         file.mv(`${__dirname}/../temporary_storage/${file.name}`)
     }
 
-    recipes.createRecipe({name, description, author, filename})
-        .then(() => {
-            res.status(201).json({msg: `Recipe created.`})
+    await recipes.createRecipe({name, description, author, filename})
+        .then(results => {
+            res.status(201).json({recipeId: `${results.rows[0].id}`});
         })
         .catch(err => {
             throw err;
         });
-
 });
-
-// router.post('/images', (req, res) => {
-//     // testing tutorial, plan to remove route later
-//     const file = req.files.file
-//     const filename = file.name
-
-    
-    
-//     file.mv(`${__dirname}/../temporary_storage/${file.name}`, err => {
-//         if (err) {
-//             throw err;
-//         }
-//         imgBuffer = fs.readFileSync(`${__dirname}/../temporary_storage/${file.name}`);
-//         imgHex = imgBuffer.toString('hex');
-//         console.log('Data: ',imgHex)
-//         recipes.storeImage({filename, imgHex})
-//             .then(results => {
-//                 res.send(results);
-//             })
-//             .catch(err => {
-//                 throw err;
-//             })
-//         fs.unlink(`${__dirname}/../temporary_storage/${file.name}`, err => {
-//             if (err) {
-//                 throw err;
-//             };
-//         });
-//     });
-    
-//     // recipes.storeImage(file.name)
-//     //     .then(results => {
-//     //         if (results) {
-//     //             res.status(200).json({msg: 'Image successfully uploaded'})
-//     //         } else {
-//     //             res.status(500).json({msg: 'Could not upload image'})
-//     //         }
-//     //     })
-//     //     .catch(err => {
-//     //         throw err;
-//     //     });
-// });
 
 router.put('/:id', (req, res) => {
     const id = parseInt(req.params.id);
     const {name, description, author} = req.body;
 
+    console.log('name: ',name,'\ndescription: ',description,'\nauthor: ',author)
     recipes.getRecipeById(id)
         .then(results => {
             if (results.rows.length) {
-                recipes.updateRecipe({name, description, author})
-                .then(results => {
-                    if (results.rows.length) {
-                        res.status(200).json({msg: `Recipe with id ${id} updated successfully.`});
-                    } else {
-                        res.status(500).json({msg: `Could not update recipe with id ${id}.`});
-                    }
+                recipes.updateRecipe({name, description, author, id})
+                .then(() => {
+                    res.status(200).json({msg: `Recipe with id ${id} updated successfully.`});
                 })
                 .catch(err => {
-                    throw err;
+                    res.status(500).json({msg: err})
                 });
             } else {
                 res.status(404).json({msg: `Could not find recipe with id ${id}.`})

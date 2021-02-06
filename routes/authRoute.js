@@ -46,7 +46,6 @@ router.post('/login', (req, res) => {
                     const id = user.id;
                     users.updateLogin({last_login, id});
                     res.status(200).json({msg: `Welcome, ${username}`, token, user})
-                    console.log('user: ',user)
                 } else {
                     res.status(401).json({msg: 'Invalid credentials'})
                 }
