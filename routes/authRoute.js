@@ -35,7 +35,6 @@ router.post('/register', (req, res) => {
 router.post('/login', (req, res) => {
     const {username, password, last_login} = req.body;
 
-    console.log('request: ',req.body)
     users.getUserByUsername(username)
         .then(results => {
             if (results.rows.length) {

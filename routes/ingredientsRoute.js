@@ -28,34 +28,58 @@ router.post('/recipe/:id/create', (req, res) => {
     });
 });
 
-router.put('/recipe/:id', (req, res) => {
+router.put('/recipe/:id', async (req, res) => {
     const id = parseInt(req.params.id);
     const data = req.body;
-    console.log('id: ',id,'data: ',data)
 
-    ingredients.deleteIngredients(id)
-        .then(() => {
-            data.forEach(ingredient => {
-                ingredients.createIngredient(ingredient.name, id)
-                    .then(() => {
-                        res.status(200).json({msg: 'ingredients updated successfully'})
-                    })
-                    .catch(err => {
-                        return next(err);
-                    })
-            })
+    await ingredients.getIngredient(id)
+        .then(results => {
+            if (results.rows.length) {
+                results.rows.forEach(async ingredient => {
+                    await ingredients.deleteIngredients(ingredient.id)
+                        .catch(err => {
+                            res.status(500).json(err);
+                        })
+                })
+                .catch(err => {
+                    res.status(500).json(err);
+                });
+            }
         })
         .catch(err => {
-            throw err;
+            res.status(500).json(err);
         });
+
+    if (data.length) {
+        data.forEach(ingredient => {
+            ingredients.createIngredient(ingredient.name, id)
+                .catch(err => {
+                    res.status(500).json(err);
+                })
+        })
+            .then(() => {
+                res.status(200).json({msg: 'ingredients updated'})
+            })
+            .catch(err => {
+                res.status(500).json(err);
+            });
+    };
 });
 
 router.delete('/recipe/:id', (req, res) => {
     const id = parseInt(req.params.id);
     
-    ingredients.deleteIngredients(id)
-        .then(() => {
-            res.status(200).json({msg: 'Ingredients successfully removed.'})
+    ingredients.getIngredient(id)
+        .then(results => {
+            if (results.rows.length) {
+                results.rows.forEach(ingredient => {
+                    console.log('editing ingredient: ',ingredient)
+                    ingredients.deleteIngredients(ingredient.id)
+                })
+                .catch(err => {
+                    res.status(500).json(err);
+                });
+            }
         })
         .catch(err => {
             throw err;
