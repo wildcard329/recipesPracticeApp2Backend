@@ -1,7 +1,7 @@
 const scripts = require('../scripts/instructionScript.js');
 const db = require('../pgConfig.js');
 
-const getInstruction = (id) => {
+const getInstructions = (id) => {
     return db.query(scripts.getRecipeInstructionsScript, [id]);
 };
 
@@ -10,11 +10,11 @@ const createInstruction = (name, id) => {
 };
 
 const deleteInstruction = (id) => {
-    return db.query(scripts.deleteInstructionScript, [id])
+    return db.query(scripts.deleteInstructionsScript, [id])
 }
 
 module.exports = {
-    getInstruction,
+    getInstructions,
     createInstruction,
     deleteInstruction
 };

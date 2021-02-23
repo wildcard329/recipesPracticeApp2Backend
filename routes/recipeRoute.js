@@ -2,40 +2,49 @@ const router = require('express').Router();
 const recipes = require('../repositories/recipeRepository.js');
 const fs = require('fs');
 
-router.get('/all', (req, res) => {
-    recipes.getRecipes()
-        .then(results => {
-            results.rows.forEach(row => {
-                if (row.image !== null){
-                    const image = row.image;
-                    row.image = fs.readFileSync(`${__dirname}/../temporary_storage/${image}`).toString('base64');
-                }
-            })
-            res.status(200).json(results.rows);
-        })
-        .catch(err => {
-            throw err;
-        });
-});
-
-router.get('/:id', (req, res) => {
-    const id = parseInt(req.params.id);
-
-    recipes.getRecipeById(id)
-        .then(results => {
-            if (results.rows.length) {
-                if (results.rows[0].image) {
-                    const image = results.rows[0].image;
-                    results.rows[0].image = fs.readFileSync(`${__dirname}/../temporary_storage/${image}`).toString('base64');
-                }
-                res.status(200).json(results.rows[0]);
-            } else {
-                res.status(404).json({msg: `Could not find recipe with id ${id}`})
+router.get('/all', async (req, res) => {
+    try {
+        const results = await recipes.getRecipes();
+        await results.rows.forEach(row => {
+            if (row.image !== null) {
+                const image = row.image;
+                row.image = fs.readFileSync(`${__dirname}/../temporary_storage/${image}`).toString('base64');
             }
         })
-        .catch(err => {
-            throw err;
-        });
+        res.status(200).json(results.rows);
+    } catch (err) {
+        res.status(500).json(err);
+    }
+});
+
+router.get('/:id', async (req, res) => {
+    const id = await parseInt(req.params.id);
+
+    // recipes.getRecipeById(id)
+    //     .then(results => {
+    //         if (results.rows.length) {
+    //             if (results.rows[0].image) {
+    //                 const image = results.rows[0].image;
+    //                 results.rows[0].image = fs.readFileSync(`${__dirname}/../temporary_storage/${image}`).toString('base64');
+    //             }
+    //             res.status(200).json(results.rows[0]);
+    //         } else {
+    //             res.status(404).json({msg: `Could not find recipe with id ${id}`})
+    //         }
+    //     })
+    //     .catch(err => {
+    //         throw err;
+    //     });
+    try {
+        const results = await recipes.getRecipeById(id);
+        if (await results.rows.length) {
+            const image = await results.rows[0].image;
+            results.rows[0].image = await fs.readFileSync(`${__dirname}/../temporary_storage/${image}`).toString('base64');
+        }
+        res.status(200).json(results.rows[0]);
+    } catch (err) {
+        res.status(500).json(err);
+    }
 });
 
 router.get('/user/:id', (req, res) => {
@@ -105,7 +114,6 @@ router.put('/:id', (req, res) => {
     const id = parseInt(req.params.id);
     const {name, description, author} = req.body;
 
-    console.log('name: ',name,'\ndescription: ',description,'\nauthor: ',author)
     recipes.getRecipeById(id)
         .then(results => {
             if (results.rows.length) {

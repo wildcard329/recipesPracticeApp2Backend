@@ -26,7 +26,6 @@ const editUser = ({username, password, email, id}) => {
 };
 
 const updateLogin = ({last_login, id}) => {
-    console.log(`repo ll: ${last_login}`)
     return db.query(scripts.updateLoginScript, [last_login, id])
 }
 

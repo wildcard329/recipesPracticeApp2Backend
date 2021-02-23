@@ -15,7 +15,7 @@ server.use(cors());
 server.use(fileUpload());
 server.use('/api/auth/', auth)
 server.use('/api/users/', users);
-server.use('/api/recipes/', mw, recipes);
+server.use('/api/recipes/', recipes);
 server.use('/api/ingredients/', ingredients);
 server.use('/api/instructions/', instructions);
 
