@@ -1,15 +1,17 @@
 const router = require('express').Router();
 const recipes = require('../repositories/recipeRepository.js');
+const users = require('../repositories/userRepository.js');
 const fs = require('fs');
 
 router.get('/all', async (req, res) => {
     try {
         const results = await recipes.getRecipes();
-        await results.rows.forEach(row => {
+        await results.rows.map(row => {
             if (row.image !== null) {
                 const image = row.image;
                 row.image = fs.readFileSync(`${__dirname}/../temporary_storage/${image}`).toString('base64');
             }
+            console.log('author: ',row.author)
         })
         res.status(200).json(results.rows);
     } catch (err) {
@@ -20,21 +22,6 @@ router.get('/all', async (req, res) => {
 router.get('/:id', async (req, res) => {
     const id = await parseInt(req.params.id);
 
-    // recipes.getRecipeById(id)
-    //     .then(results => {
-    //         if (results.rows.length) {
-    //             if (results.rows[0].image) {
-    //                 const image = results.rows[0].image;
-    //                 results.rows[0].image = fs.readFileSync(`${__dirname}/../temporary_storage/${image}`).toString('base64');
-    //             }
-    //             res.status(200).json(results.rows[0]);
-    //         } else {
-    //             res.status(404).json({msg: `Could not find recipe with id ${id}`})
-    //         }
-    //     })
-    //     .catch(err => {
-    //         throw err;
-    //     });
     try {
         const results = await recipes.getRecipeById(id);
         if (await results.rows.length) {
@@ -94,14 +81,14 @@ router.post('/search', (req, res) => {
     //     })
 })
 
-router.post('/create', async (req, res) => {
-    const {name, description, author, ingredients, instructions, filename} = req.body;
+router.post('/create', (req, res) => {
+    const {name, description, author, filename} = req.body;
     if (req.files.file) {
         const file = req.files.file;
         file.mv(`${__dirname}/../temporary_storage/${file.name}`)
     }
 
-    await recipes.createRecipe({name, description, author, filename})
+    recipes.createRecipe({name, description, author, filename})
         .then(results => {
             res.status(201).json({recipeId: `${results.rows[0].id}`});
         })

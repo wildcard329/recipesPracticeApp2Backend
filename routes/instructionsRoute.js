@@ -17,15 +17,31 @@ router.post('/recipe/:id/create', (req, res) => {
     const id = parseInt(req.params.id);
     const data = req.body;
 
-    data.forEach(instruction => {
-        instructions.createInstruction(instruction.name, id)
-            .then(() => {
-                res.status(201).json({msg: 'instructions added successfully'})
-            })
-            .catch(err => {
-                throw err;
-            });
-    });
+    try {
+        if (data.length) {
+            try {
+                data.map(async instruction => {
+                    await instructions.createInstruction(instruction.name, id);
+                })
+                res.status(201).json({msg: 'Success!'})
+            } catch (err) {
+                res.status(500).json(err);
+            }
+        } else {
+            res.status(400).json({msg: 'No instructions submitted.'})
+        }
+    } catch (err) {
+        res.status(500).json(err);
+    }
+    // data.forEach(instruction => {
+    //     instructions.createInstruction(instruction.name, id)
+    //         .then(() => {
+    //             res.status(201).json({msg: 'instructions added successfully'})
+    //         })
+    //         .catch(err => {
+    //             throw err;
+    //         });
+    // });
 });
 
 router.put('/recipe/:id', async (req, res) => {
@@ -36,9 +52,6 @@ router.put('/recipe/:id', async (req, res) => {
         const results = await instructions.getInstructions(id);
 
         if (results.rows.length) {
-            // for (var instruction of results.rows) {
-            //     await instructions.deleteInstruction(instruction.id);
-            // }
             try {
                 results.rows.map(async instruction => {
                     await instructions.deleteInstruction(instruction.id);
@@ -49,9 +62,6 @@ router.put('/recipe/:id', async (req, res) => {
         }
     
         if (data.length) {
-            // for (var instruction of data) {
-            //     await instructions.createInstruction(instruction.name, id);
-            // }
             try {
                 data.map(async instruction => {
                     await instructions.createInstruction(instruction.name, id);

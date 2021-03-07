@@ -13,27 +13,41 @@ router.get('/recipe/:id/', (req, res) => {
         });
 });
 
-router.post('/recipe/:id/create', (req, res) => {
+router.post('/recipe/:id/create', async (req, res) => {
     const id = parseInt(req.params.id)
     const data = req.body;
-    const successMsg = [];
-    const errMsg = [];
 
-    data.forEach(ingredient => {
-        ingredients.createIngredient(ingredient.name, id)
-            .then(results => {
-                successMsg.push(results.rows[0])
-            })
-            .catch(err => {
-                errMsg.push(err);
-            });
-    })
-        .then(successMsg => {
-            res.status(201).json(successMsg);
-        })
-        .catch(errMsg => {
-            res.status(500).json(errMsg);
-        });
+    try {
+        if (data.length) {
+            try {
+                data.map(async ingredient => {
+                    await ingredients.createIngredient(ingredient.name, id);
+                })
+                res.status(201).json({msg: `Success!`})
+            } catch (err) {
+                res.status(500).json(err);
+            }
+        } else {
+            res.status(400).json({msg: 'No ingredients submitted.'})
+        }
+    } catch (err) {
+        res.status(500).json(err);
+    }
+    // data.forEach(ingredient => {
+    //     ingredients.createIngredient(ingredient.name, id)
+    //         .then(results => {
+    //             successMsg.push(results.rows[0])
+    //         })
+    //         .catch(err => {
+    //             errMsg.push(err);
+    //         });
+    // })
+    //     .then(successMsg => {
+    //         res.status(201).json(successMsg);
+    //     })
+    //     .catch(errMsg => {
+    //         res.status(500).json(errMsg);
+    //     });
 });
 
 router.put('/recipe/:id', async (req, res) => {
@@ -44,9 +58,6 @@ router.put('/recipe/:id', async (req, res) => {
         const results = await ingredients.getIngredient(id);
 
         if (results.rows.length) {
-            // for (var ingredient of results.rows){  
-            //     await ingredients.deleteIngredients(ingredient.id);
-            // }
             try {
                 results.rows.map(async ingredient => {
                     await ingredients.deleteIngredients(ingredient.id);
@@ -57,9 +68,6 @@ router.put('/recipe/:id', async (req, res) => {
         }
     
         if (data.length) {
-            // for (var ingredient of data) {
-            //     await ingredients.createIngredient(ingredient.name, id);
-            // }
             try {
                 data.map(async ingredient => {
                     await ingredients.createIngredient(ingredient.name, id);

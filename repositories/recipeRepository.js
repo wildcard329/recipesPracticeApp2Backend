@@ -13,8 +13,8 @@ const getRecipesByUserId = (id) => {
     return db.query(scripts.getRecipesByUserIdScript, [id]);
 };
 
-const createRecipe = ({name, description, author, ingredients, instructions, filename}) => {
-    return db.query(scripts.createRecipeScript, [name, description, author, ingredients, instructions, filename]);
+const createRecipe = ({name, description, author, filename}) => {
+    return db.query(scripts.createRecipeScript, [name, description, author, filename]);
 };
 
 const createIngredient = ({name, recipeId}) => {
