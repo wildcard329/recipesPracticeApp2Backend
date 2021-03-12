@@ -3,7 +3,11 @@ const db = require('../pgConfig.js');
 
 const getRecipes = () => {
     return db.query(scripts.getRecipesScript);
-}
+};
+
+const getRandomSample = () => {
+    return db.query(scripts.getRandomSampleScript);
+};
 
 const getRecipeById = (id) => {
     return db.query(scripts.getRecipeByIdScript, [id]);
@@ -11,6 +15,18 @@ const getRecipeById = (id) => {
 
 const getRecipesByUserId = (id) => {
     return db.query(scripts.getRecipesByUserIdScript, [id]);
+};
+
+const getRandomSampleRecipesByUserIdScript = (id) => {
+    return db.query(scripts.getRandomSampleRecipesByUserIdScript, [id]);
+};
+
+const getRecipeByType = (type) => {
+    return db.query(scripts.getRecipeByTypeScript, [type]);
+};
+
+const getRandomSampleRecipeByType = (type) => {
+    return db.query(scripts.getRandomSampleRecipeByTypeScript, [type]);
 };
 
 const createRecipe = ({name, description, author, filename}) => {
@@ -35,8 +51,12 @@ const deleteRecipe = (id) => {
 
 module.exports = {
     getRecipes,
+    getRandomSample,
     getRecipeById,
     getRecipesByUserId,
+    getRandomSampleRecipesByUserIdScript,
+    getRecipeByType,
+    getRandomSampleRecipeByType,
     createRecipe,
     createIngredient,
     createInstruction,

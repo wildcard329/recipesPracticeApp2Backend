@@ -1,7 +1,99 @@
 const router = require('express').Router();
 const recipes = require('../repositories/recipeRepository.js');
+const filters = require('../repositories/filtersRepository.js');
 const users = require('../repositories/userRepository.js');
+const Randomizer = require('../middleware/randomElement.js');
 const fs = require('fs');
+
+router.get('/:id/browse', async (req, res) => {
+    const id = parseInt(req.params.id);
+    // This function is getting very big, will try again in the morning
+    // right now I have no idea what works, but the intent is to pass the 
+    // users id in req.params and return a sample of 50 random recipes,
+    // 10 random from all recipes, 10 random from the user, and 30 random from 
+    // filters, for now filters have been populated, but in the future, they will
+    // populate when a user submits a new type of recipe or when a user enters a 
+    // specific recipe search
+    try {
+        // allfilters will get filtered so filters are not repeated, had to use let instead of const
+        let allFilters = []
+        const searchFilters = []
+        const sample = []
+
+        // sets filters that will be used in sample query
+        const recipeFilters = await filters.getFilters();
+        await recipeFilters.rows.map(async row => {
+            await allFilters.push(row.name);
+        })
+
+        // sets vars used to query db
+        const recipeFilter1 = await Randomizer.returnRandomElement(allFilters);
+        searchFilters.push(recipeFilter1);
+        allFilters = await Randomizer.filterElement(recipeFilter1, allFilters);
+        const recipeFilter2 = await Randomizer.returnRandomElement(allFilters);
+        searchFilters.push(recipeFilter2);
+        allFilters = await Randomizer.filterElement(recipeFilter2, allFilters);
+        const recipeFilter3 = await Randomizer.returnRandomElement(allFilters);
+        searchFilters.push(recipeFilter3);
+        allFilters = await Randomizer.filterElement(recipeFilter3, allFilters);
+        sample.push(searchFilters);
+
+        // random sample of all recipes, max 10
+        const results = await recipes.getRandomSample();
+        await results.rows.map(row => {
+            if (row.image !== null) {
+                const image = row.image;
+                row.image = fs.readFileSync(`${__dirname}/../temporary_storage/${image}`).toString('base64');
+            }
+        })
+        await sample.push(results.rows)
+
+        // random sample of all recipes by user, max 10
+        const userResults = await recipes.getRandomSampleRecipesByUserIdScript(id);
+        await userResults.rows.map(row => {
+            if (row.image !== null) {
+                const image = row.image;
+                row.image = fs.readFileSync(`${__dirname}/../temporary_storage/${image}`).toString('base64');
+            }
+        })
+        await sample.push(userResults.rows);
+
+        // random sample of recipes which have a type of the first filter, max 10
+        const filter1Results = await recipes.getRandomSampleRecipeByType(recipeFilter1);
+        await filter1Results.rows.map(row => {
+            if (row.image !== null) {
+                const image = row.image;
+                row.image = fs.readFileSync(`${__dirname}/../temporary_storage/${image}`).toString('base64');
+            }
+        })  
+        await sample.push(filter1Results.rows);
+
+        // random sample of recipes which have a type of the second filter, max 10
+        const filter2Results = await recipes.getRandomSampleRecipeByType(recipeFilter2);
+        await filter2Results.rows.map(row => {
+            if (row.image !== null) {
+                const image = row.image;
+                row.image = fs.readFileSync(`${__dirname}/../temporary_storage/${image}`).toString('base64');
+            }
+        })   
+        await sample.push(filter2Results.rows);
+
+        // random sample of recipes which have a type of the third filter, max 10
+        const filter3Results = await recipes.getRandomSampleRecipeByType(recipeFilter3);
+        await filter3Results.rows.map(row => {
+            if (row.image !== null) {
+                const image = row.image;
+                row.image = fs.readFileSync(`${__dirname}/../temporary_storage/${image}`).toString('base64');
+            }
+        })   
+        await sample.push(filter3Results.rows);
+        
+        // sample should contain up to 50 recipes, will display when the user logs in
+        res.status(200).json(sample);
+    } catch (err) {
+        res.status(500).json(err);
+    }
+})
 
 router.get('/all', async (req, res) => {
     try {
@@ -11,7 +103,6 @@ router.get('/all', async (req, res) => {
                 const image = row.image;
                 row.image = fs.readFileSync(`${__dirname}/../temporary_storage/${image}`).toString('base64');
             }
-            console.log('author: ',row.author)
         })
         res.status(200).json(results.rows);
     } catch (err) {
