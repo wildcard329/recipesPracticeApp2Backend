@@ -1,4 +1,6 @@
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const secrets = require('../api/secret.js');
 
 class AuthenticationFunction {
     static saltPassword(password) {
@@ -9,6 +11,17 @@ class AuthenticationFunction {
         password = hash;
 
         return password;
+    };
+    static generateToken(user) {
+        const payload = {
+            userId: user.id,
+            username: user.username
+        };
+        const secret = secrets.jwtSecret;
+        const options = {
+            expiresIn: '6h'
+        };
+        return jwt.sign(payload, secret, options);
     };
 };
 
