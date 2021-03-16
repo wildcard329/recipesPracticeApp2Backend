@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const bcrypt = require('bcrypt');
 const users = require('../repositories/userRepository.js');
+const userFunc = require('../middleware/userFunc.js');
 const auth = require('../middleware/authFunc.js');
 
 router.post('/register', async (req, res) => {
@@ -30,26 +31,27 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
     const {username, password, last_login} = req.body;
 
-    users.getUserByUsername(username)
-        .then(results => {
-            if (results.rows.length) {
-                user = results.rows[0]
+    try {
+        const results = await users.getUserByUsername(username);
 
-                if (user && bcrypt.compareSync(password, user.password)) {
-                    const token = auth.generateToken(user);
-                    const id = user.id;
-                    users.updateLogin({last_login, id});
-                    res.status(200).json({msg: `Welcome, ${username}`, token, user})
-                } else {
-                    res.status(401).json({msg: 'Invalid credentials'})
-                }
+        if (results.rows.length) {
+            user = results.rows[0];
+
+            if (user && bcrypt.compareSync(password, user.password)) {
+                const token = auth.generateToken(user);
+                const id = user.id
+                await users.updateLogin({last_login, id});
+
+                res.status(200).json({msg: `Welcome, ${username}`, token, user})
             } else {
-                res.status(400).json({msg: 'User not found.'})
+                res.status(401).json({msg: 'Invalid credentials'})
             }
-        })
-        .catch(err => {
-            res.status(500).json(err);
-        });
+        } else {
+            res.status(400).json({msg: 'User not found'})
+        }
+    } catch (err) {
+        res.status(500).json(err);
+    }
 });
 
 module.exports = router;
