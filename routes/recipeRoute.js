@@ -3,6 +3,7 @@ const recipes = require('../repositories/recipeRepository.js');
 const filters = require('../repositories/filtersRepository.js');
 const users = require('../repositories/userRepository.js');
 const Randomizer = require('../middleware/randomElement.js');
+const RecipeHelper = require('../middleware/addRecipeHelper.js');
 const fs = require('fs');
 
 router.get('/:id/browse', async (req, res) => {
@@ -173,13 +174,24 @@ router.post('/search', (req, res) => {
 })
 
 router.post('/create', (req, res) => {
-    const {name, description, author, filename} = req.body;
+    const {name, type, description, author, filename} = req.body;
     if (req.files.file) {
         const file = req.files.file;
         file.mv(`${__dirname}/../temporary_storage/${file.name}`)
     }
 
-    recipes.createRecipe({name, description, author, filename})
+    // try {
+    //     await RecipeHelper.compareCategory(type)
+    //     await recipes.createRecipe({name, type, description, author, filename})    
+        
+    //     res.status(201).json({recipeId: `${results.rows[0].id}`});
+    // } catch (err) {
+    //     res.status(500).json(err);
+    // }
+
+    RecipeHelper.compareCategory(type);
+
+    recipes.createRecipe({name, type, description, author, filename})
         .then(results => {
             res.status(201).json({recipeId: `${results.rows[0].id}`});
         })
@@ -190,12 +202,12 @@ router.post('/create', (req, res) => {
 
 router.put('/:id', (req, res) => {
     const id = parseInt(req.params.id);
-    const {name, description, author} = req.body;
+    const {name, type, description, author} = req.body;
 
     recipes.getRecipeById(id)
         .then(results => {
             if (results.rows.length) {
-                recipes.updateRecipe({name, description, author, id})
+                recipes.updateRecipe({name, type, description, author, id})
                 .then(() => {
                     res.status(200).json({msg: `Recipe with id ${id} updated successfully.`});
                 })

@@ -5,7 +5,7 @@ const getFilters = () => {
     return db.query(scripts.getFiltersScript);
 };
 
-const addFilter = ({filter}) => {
+const addFilter = (filter) => {
     return db.query(scripts.addFilterScript, [filter]);
 };
 

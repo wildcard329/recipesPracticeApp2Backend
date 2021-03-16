@@ -3,33 +3,35 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const users = require('../repositories/userRepository.js');
 const secrets = require('../api/secret.js');
+const auth = require('../middleware/authFunc.js');
 
-router.post('/register', (req, res) => {
-    let {username, password, email, created_on} = req.body;
+router.post('/register', async (req, res) => {
+    try {
+        let {username, password, email, created_on} = req.body;
+        
+        // const rounds = process.env.HASH_ROUNDS || 14;
+    
+        // const hash = bcrypt.hashSync(password, rounds);
+    
+        // password = hash;
+        password = await auth.saltPassword(password)
 
-    const rounds = process.env.HASH_ROUNDS || 14;
-
-    const hash = bcrypt.hashSync(password, rounds);
-
-    password = hash;
-
-    users.getUserByEmail(email)
-    .then(results => {
+        const results = await users.getUserByEmail(email);
+        
         if (!results.rows.length) {
-            users.createUser({username, password, email, created_on})
-                .then(() => {
-                    res.status(201).send('User created.');
-                })
-                .catch(err => {
-                    throw err;
-                });
+            try {
+                await users.createUser({username, password, email, created_on})
+            
+                res.status(201).json({msg: 'User successfully created!'})
+            } catch (err) {
+                res.status(500).json(err);
+            }
         } else {
-            res.status(400).send(`User with email ${email} already exists.`)
+            res.status(400).json({msg: 'User already exists'})
         }
-    })
-    .catch(err => {
-        throw err;
-    });
+    } catch (err) {
+        res.status(500).json(err);
+    }
 });
 
 router.post('/login', (req, res) => {
@@ -53,7 +55,7 @@ router.post('/login', (req, res) => {
             }
         })
         .catch(err => {
-            throw err;
+            res.status(500).json(err);
         });
 });
 

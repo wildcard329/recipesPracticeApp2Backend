@@ -33,21 +33,6 @@ router.post('/recipe/:id/create', async (req, res) => {
     } catch (err) {
         res.status(500).json(err);
     }
-    // data.forEach(ingredient => {
-    //     ingredients.createIngredient(ingredient.name, id)
-    //         .then(results => {
-    //             successMsg.push(results.rows[0])
-    //         })
-    //         .catch(err => {
-    //             errMsg.push(err);
-    //         });
-    // })
-    //     .then(successMsg => {
-    //         res.status(201).json(successMsg);
-    //     })
-    //     .catch(errMsg => {
-    //         res.status(500).json(errMsg);
-    //     });
 });
 
 router.put('/recipe/:id', async (req, res) => {

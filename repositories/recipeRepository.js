@@ -29,8 +29,8 @@ const getRandomSampleRecipeByType = (type) => {
     return db.query(scripts.getRandomSampleRecipeByTypeScript, [type]);
 };
 
-const createRecipe = ({name, description, author, filename}) => {
-    return db.query(scripts.createRecipeScript, [name, description, author, filename]);
+const createRecipe = ({name, type, description, author, filename}) => {
+    return db.query(scripts.createRecipeScript, [name, type, description, author, filename]);
 };
 
 const createIngredient = ({name, recipeId}) => {
@@ -41,8 +41,8 @@ const createInstruction = ({name, recipeId}) => {
     return db.query(scripts.createInstructionScript, [name, recipeId]);
 };
 
-const updateRecipe = ({name, description, author, id}) => {
-    return db.query(scripts.updateRecipeScript, [name, description, author, id]);
+const updateRecipe = ({name, type, description, author, id}) => {
+    return db.query(scripts.updateRecipeScript, [name, type, description, author, id]);
 };
 
 const deleteRecipe = (id) => {
