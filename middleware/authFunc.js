@@ -12,9 +12,9 @@ class AuthenticationFunction {
 
         return password;
     };
-    static compareUserPassword(pw, id) {
-        return bcrypt.compareSync(pw, id);
-    }
+    static compareUserPassword(pw, upw) {
+        return bcrypt.compareSync(pw, upw);
+    };
     static generateToken(user) {
         const payload = {
             userId: user.id,

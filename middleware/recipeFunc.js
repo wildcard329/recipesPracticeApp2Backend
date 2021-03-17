@@ -1,6 +1,6 @@
 const categories = require('../repositories/filtersRepository.js');
 
-class AddRecipeHelper {
+class RecipeFunctions {
     static async compareCategory(recipeType) {
         const filters = [];
         const filterData = await categories.getFilters();
@@ -12,7 +12,7 @@ class AddRecipeHelper {
         } else {
             categories.addFilter(recipeType);
         };
-    }
-}
+    };
+};
 
-module.exports = AddRecipeHelper;
+module.exports = RecipeFunctions;

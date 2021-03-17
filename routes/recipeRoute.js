@@ -3,7 +3,7 @@ const recipes = require('../repositories/recipeRepository.js');
 const filters = require('../repositories/filtersRepository.js');
 const users = require('../repositories/userRepository.js');
 const Randomizer = require('../middleware/randomElement.js');
-const RecipeHelper = require('../middleware/addRecipeHelper.js');
+const RecipeHelper = require('../middleware/recipeFunc.js');
 const fs = require('fs');
 
 router.get('/:id/browse', async (req, res) => {
@@ -126,26 +126,26 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-router.get('/user/:id', (req, res) => {
+router.get('/user/:id', async (req, res) => {
     const id = parseInt(req.params.id);
 
-    recipes.getRecipesByUserId(id)
-        .then(results => {
-            if (results.rows.length) {
-                results.rows.forEach(row => {
-                    if (row.image !== null){
-                        const image = row.image;
-                        row.image = fs.readFileSync(`${__dirname}/../temporary_storage/${image}`).toString('base64');
-                    }
-                })
-                res.status(200).json(results.rows);
-            } else {
-                res.status(404).json({msg: `Could not find recipes by user with id ${id}`})
-            }
-        })
-        .catch(err => {
-            throw err;
-        });
+    try {
+        const results = await recipes.getRecipesByUserId(id);
+        if (results.rows.length) {
+            results.rows.map(row => {
+                const image = row.image;
+                row.image = fs.readFileSync(`${__dirname}/../temporary_storage/${image}`).toString('base64');
+            })
+            
+            res.status(200).json(results.rows);
+        } else {
+            console.log('oops')
+            res.status(404).json({msg: `Could not find recipes by user with id ${id}`})
+        }
+    } catch (err) {
+        console.log('err: ',err)
+        res.status(500).json(err);
+    }
 });
 
 router.post('/search', (req, res) => {
@@ -173,76 +173,66 @@ router.post('/search', (req, res) => {
     //     })
 })
 
-router.post('/create', (req, res) => {
+router.post('/create', async (req, res) => {
     const {name, type, description, author, filename} = req.body;
     if (req.files.file) {
         const file = req.files.file;
         file.mv(`${__dirname}/../temporary_storage/${file.name}`)
     }
-
-    // try {
-    //     await RecipeHelper.compareCategory(type)
-    //     await recipes.createRecipe({name, type, description, author, filename})    
-        
+    
+    // RecipeHelper.compareCategory(type);
+    
+    // recipes.createRecipe({name, type, description, author, filename})
+    // .then(results => {
     //     res.status(201).json({recipeId: `${results.rows[0].id}`});
-    // } catch (err) {
-    //     res.status(500).json(err);
-    // }
-
-    RecipeHelper.compareCategory(type);
-
-    recipes.createRecipe({name, type, description, author, filename})
-        .then(results => {
-            res.status(201).json({recipeId: `${results.rows[0].id}`});
-        })
-        .catch(err => {
-            throw err;
-        });
+    // })
+    // .catch(err => {
+    //     throw err;
+    // });
+    try {
+        await RecipeHelper.compareCategory(type)
+        const results = await recipes.createRecipe({name, type, description, author, filename})    
+        
+        res.status(201).json({recipeId: `${results.rows[0].id}`});
+    } catch (err) {
+        res.status(500).json(err);
+    }
 });
 
-router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
     const id = parseInt(req.params.id);
     const {name, type, description, author} = req.body;
 
-    recipes.getRecipeById(id)
-        .then(results => {
+    try {
+        const results = await recipes.getRecipeById(id)
             if (results.rows.length) {
-                recipes.updateRecipe({name, type, description, author, id})
-                .then(() => {
-                    res.status(200).json({msg: `Recipe with id ${id} updated successfully.`});
-                })
-                .catch(err => {
-                    res.status(500).json({msg: err})
-                });
+                await recipes.updateRecipe({name, type, description, author, id});
+
+                res.status(200).json({msg: `Recipe with id ${id} updated successfully.`})
             } else {
-                res.status(404).json({msg: `Could not find recipe with id ${id}.`})
+                res.status(404).json({msg: `Could not find recipe with id ${id}`})
             }
-        })
-        .catch(err => {
-            throw err;
-        });
+    } catch (err) {
+        res.status(500).json(err);
+    };
 });
 
-router.delete('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
     const id = parseInt(req.params.id);
 
-    recipes.getRecipeById(id)
-        .then(results => {
-            if (results.rows.length) {
-                recipes.deleteRecipe(id)
-                    .then(() => {
-                        res.status(200).json({msg: `Recipe with id ${id} successfully deleted.`});
-                    })
-                    .catch(err => {
-                        throw err;
-                    })
-            } else {
-                res.status(404).json({msg: `Could not find recipe with id ${id}.`});
-            }
-        })
-        .catch(err => {
-            throw err;
-        });
+    try {
+        const results = await recipes.getRecipeById(id);
+
+        if (results.rows.length) {
+            recipes.deleteRecipe(id)
+
+            res.status(200).json({msg: `Recipe with id ${id} successfully deleted`});
+        } else {
+            res.status(404).json({msg: `Could not find recipe with id ${id}`})
+        }
+    } catch (err) {
+        res.status(500).json(err);
+    }
 });
 
 module.exports = router;
