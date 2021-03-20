@@ -1,7 +1,8 @@
 const router = require('express').Router();
 const recipes = require('../repositories/recipeRepository.js');
 const filters = require('../repositories/filtersRepository.js');
-const users = require('../repositories/userRepository.js');
+const ingredientsHandler = require('../repositories/ingredientsRepository.js');
+const instructionsHandler = require('../repositories/instructionsRepository.js');
 const Randomizer = require('../middleware/randomElement.js');
 const RecipeHelper = require('../middleware/recipeFunc.js');
 const fs = require('fs');
@@ -100,11 +101,11 @@ router.get('/all', async (req, res) => {
     try {
         const results = await recipes.getRecipes();
         await results.rows.map(row => {
-            if (row.image !== null) {
-                const image = row.image;
-                row.image = fs.readFileSync(`${__dirname}/../temporary_storage/${image}`).toString('base64');
-            }
-        })
+                if (row.image !== null) {
+                        const image = row.image;
+                        row.image = fs.readFileSync(`${__dirname}/../temporary_storage/${image}`).toString('base64');
+                    }
+                })
         res.status(200).json(results.rows);
     } catch (err) {
         res.status(500).json(err);
@@ -118,7 +119,12 @@ router.get('/:id', async (req, res) => {
         const results = await recipes.getRecipeById(id);
         if (await results.rows.length) {
             const image = await results.rows[0].image;
+            const id = await results.rows[0].id;
             results.rows[0].image = await fs.readFileSync(`${__dirname}/../temporary_storage/${image}`).toString('base64');
+            const ingredients = await ingredientsHandler.getIngredient(id)
+            const instructions = await instructionsHandler.getInstructions(id)
+            results.rows[0].ingredients = ingredients.rows;
+            results.rows[0].instructions = instructions.rows;
         }
         res.status(200).json(results.rows[0]);
     } catch (err) {
@@ -201,7 +207,7 @@ router.post('/create', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
     const id = parseInt(req.params.id);
-    const {name, type, description, author} = req.body;
+    const {name, type, description, author, ingredients, instructions} = req.body;
 
     try {
         const results = await recipes.getRecipeById(id)
