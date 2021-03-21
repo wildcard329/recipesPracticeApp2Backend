@@ -180,25 +180,28 @@ router.post('/search', (req, res) => {
 })
 
 router.post('/create', async (req, res) => {
-    const {name, type, description, author, filename} = req.body;
+    const {name, type, description, author, filename, ingredients, instructions} = req.body;
     if (req.files.file) {
         const file = req.files.file;
         file.mv(`${__dirname}/../temporary_storage/${file.name}`)
     }
     
-    // RecipeHelper.compareCategory(type);
-    
-    // recipes.createRecipe({name, type, description, author, filename})
-    // .then(results => {
-    //     res.status(201).json({recipeId: `${results.rows[0].id}`});
-    // })
-    // .catch(err => {
-    //     throw err;
-    // });
+    console.log('ingredients: \n',ingredients,'\ninstructions: \n',instructions)
+
     try {
         await RecipeHelper.compareCategory(type)
         const results = await recipes.createRecipe({name, type, description, author, filename})    
         
+        if (ingredients.length) {
+            console.log('recipe: ',req.body)
+            try {
+                ingredients.map(ingredient => {
+                    console.log('ingredient: ',ingredient)
+                })
+            } catch (err) {
+                console.log(err);
+            }
+        }
         res.status(201).json({recipeId: `${results.rows[0].id}`});
     } catch (err) {
         res.status(500).json(err);
